@@ -2,9 +2,12 @@ package com.kyrobot.howfar;
 
 import static spark.Spark.get;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import com.google.gson.Gson;
+import com.kyrobot.howfar.services.ElevationService;
+import com.kyrobot.howfar.services.RESTService;
 
 import spark.ResponseTransformer;
 
@@ -14,7 +17,7 @@ import spark.ResponseTransformer;
  */
 public class Server 
 {
-	public static ResponseTransformer json = (ResponseTransformer) (o) -> new Gson().toJson(o);
+	public static final ResponseTransformer JSON = (ResponseTransformer) (o) -> new Gson().toJson(o);
 	
 	public static class WelcomeMessage {
 		public String greeting;
@@ -27,6 +30,12 @@ public class Server
         	final WelcomeMessage hello = new WelcomeMessage();
         	hello.greeting="Hello, " + maybeName.orElse("World");
         	return hello;
-        }, json);
+        }, JSON);
+        
+        final RESTService[] services = {new ElevationService()};
+        Arrays.stream(services).forEach(RESTService::defineRoutes);
+        
+        
+        
     }
 }

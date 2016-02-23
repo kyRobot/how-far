@@ -11,6 +11,7 @@ import com.kyrobot.howfar.model.TallThing;
 public class InMemoryElevationStoreDAO implements DataAccessObject<TallThing> {
 	
 	private final List<TallThing> STORE;
+	private final int significantHeight = 300;
 
 	public InMemoryElevationStoreDAO() {
 		Builder<TallThing> immutableModel = ImmutableList.builder();
@@ -29,6 +30,14 @@ public class InMemoryElevationStoreDAO implements DataAccessObject<TallThing> {
 		return STORE.parallelStream()
 				.filter(t -> t.getId() == id)
 				.findFirst();
+	}
+
+	@Override
+	public Stream<TallThing> getMajor() {
+		return STORE.parallelStream()
+				.filter(t -> t.getHeight() >= significantHeight);
+				
+				
 	}
 
 }

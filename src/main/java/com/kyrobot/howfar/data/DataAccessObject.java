@@ -16,13 +16,18 @@ public interface DataAccessObject<T> {
 	 */
 	Stream<T> getAll();
 	
-	
 	/**
 	 * @param id a unique identifier for a T in the datasource
 	 * @return an {@link Optional} containing the T represented by
 	 * the given id if found in the datasource, otherwise Empty
 	 */
 	Optional<T> getById(long id);
+	
+	/**
+	 * @return a {@link Stream} of all T considered major/significant
+	 * in the datasource e.g significance is implementation specific
+	 */
+	Stream<T> getMajor();
 	
 
 }

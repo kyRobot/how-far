@@ -45,13 +45,13 @@ public class ElevationService implements RESTService {
 		
 		get(API_ROOT + "/meters/:meters", APPLICATION_JSON, (req, res) -> {
 			final ElevationResponse.Builder builder = ElevationResponse.builder();
-			builder.majorMilestones(milestones.apply(dao.getAll(), convert(req.params(":meters"), 1.0)));
+			builder.majorMilestones(milestones.apply(dao.getMajor(), convert(req.params(":meters"), 1.0)));
 			return builder.build();
 		}, JSON);
 		
 		get(API_ROOT + "/feet/:feet", APPLICATION_JSON, (req, res) -> {
 			final ElevationResponse.Builder builder = ElevationResponse.builder();
-			builder.majorMilestones(milestones.apply(dao.getAll(), convert(req.params(":feet"), METERS_PER_FOOT)));
+			builder.majorMilestones(milestones.apply(dao.getMajor(), convert(req.params(":feet"), METERS_PER_FOOT)));
 			return builder.build();
 		}, JSON);
 		

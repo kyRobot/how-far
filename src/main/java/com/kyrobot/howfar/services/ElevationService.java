@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import com.kyrobot.howfar.common.Functions;
 import com.kyrobot.howfar.data.DataAccessObject;
 import com.kyrobot.howfar.model.ElevationMilestone;
-import com.kyrobot.howfar.model.TallThing;
+import com.kyrobot.howfar.model.HighTarget;
 import com.kyrobot.howfar.responses.ElevationResponse;
 
 public class ElevationService implements RESTService {
@@ -23,16 +23,16 @@ public class ElevationService implements RESTService {
 	public static final double METERS_PER_FLOOR = 3.048;
 	public static final double METERS_PER_FOOT = 0.3048;
 	
-	private final DataAccessObject<TallThing> dao;
+	private final DataAccessObject<HighTarget> dao;
 	
-	public ElevationService(DataAccessObject<TallThing> dao) {
+	public ElevationService(DataAccessObject<HighTarget> dao) {
 		this.dao = dao;
 	}
 	
 	@Override
 	public void defineRoutes() {
 		
-		final BiFunction<Stream<TallThing>, Double, List<ElevationMilestone>> 
+		final BiFunction<Stream<HighTarget>, Double, List<ElevationMilestone>> 
 			milestones = (targets, climbed) -> 
 				targets.map(t-> new ElevationMilestone(t, completed(climbed, t.getHeight(), 3)))
 					.collect(toList());

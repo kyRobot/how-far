@@ -5,31 +5,23 @@ import static java.util.stream.Collectors.toList;
 import static spark.Spark.exception;
 import static spark.Spark.get;
 
-import java.math.BigDecimal;
+import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
+import com.kyrobot.howfar.common.Functions;
 import com.kyrobot.howfar.data.DataAccessObject;
 import com.kyrobot.howfar.model.ElevationMilestone;
 import com.kyrobot.howfar.model.TallThing;
 
 public class ElevationService implements RESTService {
 	
+	private static final String APPLICATION_JSON = "application/json";
 	private static final String API_ROOT = "/api/elevation";
-	
-	private static final double METERS_PER_FLOOR = 3.048;
-	private static final double METERS_PER_FOOT = 0.3048;
-	
-	private static final Function<Double, Double> precision = 
-			(value) -> new BigDecimal(value).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-			
-	private static final BiFunction<Double, Integer, Double> percent = 
-			(climbed, height) -> climbed/height;
-	
-	private static final BinaryOperator<Double> converter = 
-			(rate, value) -> rate * value;
 
+	public static final double METERS_PER_FLOOR = 3.048;
+	public static final double METERS_PER_FOOT = 0.3048;
+	
 	private final DataAccessObject<TallThing> dao;
 	
 	public ElevationService(DataAccessObject<TallThing> dao) {
@@ -39,38 +31,37 @@ public class ElevationService implements RESTService {
 	@Override
 	public void defineRoutes() {
 		
-		final BiFunction<Double, Integer, Double> completed = percent.andThen(precision);
+		final BiFunction<Stream<TallThing>, Double, List<ElevationMilestone>> 
+			milestones = (targets, climbed) -> 
+				targets.map(t-> new ElevationMilestone(t, completed(climbed, t.getHeight(), 3)))
+					.collect(toList());
 		
-		get(API_ROOT + "/floors/:floors", "application/json", (req, res) -> {
-			final double floors = Double.parseDouble(req.params(":floors"));
-			final double heightClimbed = converter.apply(METERS_PER_FLOOR, floors);
-			return dao.getAll()
-				.map(t -> new ElevationMilestone(t, completed.apply(heightClimbed, t.getHeight())))
-				.collect(toList());
-			
+		get(API_ROOT + "/floors/:floors", APPLICATION_JSON, (req, res) -> {
+			return milestones.apply(dao.getAll(), convert(req.params(":floors"), METERS_PER_FLOOR)) ;
 		}, JSON);
 		
-		get(API_ROOT + "/meters/:meters", "application/json", (req, res) -> {
-			final double heightClimbed = Double.parseDouble(req.params(":meters"));
-			return dao.getAll()
-				.map(t ->  new ElevationMilestone(t, completed.apply(heightClimbed, t.getHeight())))
-				.collect(toList());
-			
+		get(API_ROOT + "/meters/:meters", APPLICATION_JSON, (req, res) -> {
+			return milestones.apply(dao.getAll(), convert(req.params(":meters"), 1.0));
 		}, JSON);
 		
-		get(API_ROOT + "/feet/:feet", "application/json", (req, res) -> {
-			final double feet = Double.parseDouble(req.params(":feet"));
-			final double heightClimbed = converter.apply(METERS_PER_FOOT, feet);
-			return dao.getAll()
-				.map(t ->  new ElevationMilestone(t, completed.apply(heightClimbed, t.getHeight())))
-				.collect(toList());
-			
+		get(API_ROOT + "/feet/:feet", APPLICATION_JSON, (req, res) -> {
+			return milestones.apply(dao.getAll(), convert(req.params(":feet"), METERS_PER_FOOT));
 		}, JSON);
 		
 		exception(NumberFormatException.class, (e, req, res) -> {
 		    res.status(400);
-		    res.body("Bad Request, we expected a number");
+		    res.body("Bad Request, expected a number");
 		});
 	}
+	
+	private Double convert(String userInput, Double multiplierToMeters) {
+		return Functions.converter.apply(multiplierToMeters, userInput);
+	}
+	
+	private Double completed(final double done, final int target, final int precision) {
+		return Functions.toNplaces.apply(precision, done/target);
+	}
+	
+	
 
 }

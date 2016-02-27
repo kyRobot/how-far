@@ -13,6 +13,7 @@ import com.kyrobot.howfar.common.Functions;
 import com.kyrobot.howfar.data.DataAccessObject;
 import com.kyrobot.howfar.model.ElevationMilestone;
 import com.kyrobot.howfar.model.TallThing;
+import com.kyrobot.howfar.responses.ElevationResponse;
 
 public class ElevationService implements RESTService {
 	
@@ -37,15 +38,21 @@ public class ElevationService implements RESTService {
 					.collect(toList());
 		
 		get(API_ROOT + "/floors/:floors", APPLICATION_JSON, (req, res) -> {
-			return milestones.apply(dao.getAll(), convert(req.params(":floors"), METERS_PER_FLOOR)) ;
+			final ElevationResponse.Builder builder = ElevationResponse.builder();
+			builder.majorMilestones(milestones.apply(dao.getMajor(), convert(req.params(":floors"), METERS_PER_FLOOR)));
+			return builder.build();
 		}, JSON);
 		
 		get(API_ROOT + "/meters/:meters", APPLICATION_JSON, (req, res) -> {
-			return milestones.apply(dao.getAll(), convert(req.params(":meters"), 1.0));
+			final ElevationResponse.Builder builder = ElevationResponse.builder();
+			builder.majorMilestones(milestones.apply(dao.getAll(), convert(req.params(":meters"), 1.0)));
+			return builder.build();
 		}, JSON);
 		
 		get(API_ROOT + "/feet/:feet", APPLICATION_JSON, (req, res) -> {
-			return milestones.apply(dao.getAll(), convert(req.params(":feet"), METERS_PER_FOOT));
+			final ElevationResponse.Builder builder = ElevationResponse.builder();
+			builder.majorMilestones(milestones.apply(dao.getAll(), convert(req.params(":feet"), METERS_PER_FOOT)));
+			return builder.build();
 		}, JSON);
 		
 		exception(NumberFormatException.class, (e, req, res) -> {
@@ -62,6 +69,4 @@ public class ElevationService implements RESTService {
 		return Functions.toNplaces.apply(precision, done/target);
 	}
 	
-	
-
 }

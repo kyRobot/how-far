@@ -48,4 +48,12 @@ public class InMemoryElevationStoreDAO implements DataAccessObject<HighTarget> {
 				
 	}
 
+	@Override
+	public Stream<HighTarget> getMatches(int target, int n) {
+		return STORE.parallelStream()
+				.filter(t -> t.getHeight() <= target)
+				.sorted((a,b) -> b.getHeight() - a.getHeight())
+				.limit(n);
+	}
+
 }

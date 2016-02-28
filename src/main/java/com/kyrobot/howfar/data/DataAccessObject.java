@@ -29,5 +29,14 @@ public interface DataAccessObject<T> {
 	 */
 	Stream<T> getMajor();
 	
+	/**
+	 * @param target the target to match eg height, distance
+	 * @param n the max number of T to find
+	 * @return a {@link Stream} of all n Ts that closest match the
+	 * 	supplied target. Implementers decide what constitutes
+	 * 	a match.
+	 */
+	Stream<T> getMatches(int target, int n);
+	
 
 }

@@ -42,7 +42,7 @@ public interface DataAccessObject<T> {
 	 * 	supplied target. Implementers decide what constitutes
 	 * 	a match.
 	 */
-	Stream<T> getMatches(int target, int n);
+	Stream<T> getMatches(double target, int n);
 
 	
 

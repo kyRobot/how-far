@@ -1,12 +1,17 @@
 package com.kyrobot.howfar.services;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyDouble;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.when;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.junit.After;
@@ -16,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.kyrobot.howfar.data.DataAccessObject;
 import com.kyrobot.howfar.model.ElevationMilestone;
@@ -41,6 +47,7 @@ public class ElevationServiceTest {
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
 		when(mockDAO.getMajor()).thenReturn(Stream.of(new HighTarget(major_id, major_name, major_height)));
+		when(mockDAO.getMatches(anyDouble(), anyInt())).thenReturn(Stream.empty());
 		ElevationService service = new ElevationService(mockDAO);
 		service.defineRoutes();
 		Spark.awaitInitialization();
@@ -109,6 +116,26 @@ public class ElevationServiceTest {
 		
 	}
 	
+	
+	@Test
+	public void testMetersClosest() throws Exception {
+		final HighTarget one = new HighTarget(1, "One", 1);
+		final HighTarget two = new HighTarget(2, "Two", 2);
+		final HighTarget three = new HighTarget(3, "Three", 3);
+		
+		when(mockDAO.getMatches(anyDouble(), anyInt())).thenReturn(Stream.of(three, two, one));
+		
+		final String json = ServiceTestUtils.doGET(API_ROOT + "meters/3");
+		final ElevationResponse elevationResponse = gson.fromJson(json, ElevationResponse.class);
+		
+		final Collection<ElevationMilestone> closest = elevationResponse.getClosestAchievements();
+		assertTrue(closest.size() == 3);
+		
+		final Set<HighTarget> closestTargets = closest.stream().map(em -> em.milestone).collect(toSet());
+		final Set<Double> closestCompletions = closest.stream().map(em -> em.completion).collect(toSet());
+		assertEquals(Sets.newHashSet(one, two, three), closestTargets);
+		assertEquals(Sets.newHashSet(1.0, 1.5, 3.0), closestCompletions);
+	}
 	private void checkTarget(HighTarget target, long expectedId, String expectedName, int expectedHeight) {
 		assertNotNull(target);
 		assertEquals(expectedName, target.getName());

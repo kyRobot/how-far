@@ -15,8 +15,16 @@ public class InMemoryElevationStoreDAO implements DataAccessObject<HighTarget> {
 
 	public InMemoryElevationStoreDAO() {
 		Builder<HighTarget> immutableModel = ImmutableList.builder();
-		immutableModel.add(new HighTarget(123L, "Big Ben", 96));
-		immutableModel.add(new HighTarget(456L, "Empire State Building", 381));
+		immutableModel.add(new HighTarget(0L, "Big Ben", 96));
+		immutableModel.add(new HighTarget(1L, "The Gherkin", 180));
+		immutableModel.add(new HighTarget(2L, "The Shard", 306));
+		immutableModel.add(new HighTarget(3L, "Empire State Building", 381));
+		immutableModel.add(new HighTarget(4L, "Millenium Dome", 95));
+		immutableModel.add(new HighTarget(5L, "London Eye", 134));
+		immutableModel.add(new HighTarget(6L, "One Canada Square, Canary Wharf", 235));
+		immutableModel.add(new HighTarget(7L, "Tower 42", 182));
+		immutableModel.add(new HighTarget(8L, "Orbit", 135));
+		immutableModel.add(new HighTarget(9L, "Walkie Talkie", 160));
 		STORE = immutableModel.build();
 	}
 	

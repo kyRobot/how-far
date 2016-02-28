@@ -24,6 +24,12 @@ public interface DataAccessObject<T> {
 	Optional<T> getById(long id);
 	
 	/**
+	 * @param ids an array of the unique identifiers of the Ts in the datasource
+	 * @return a {@link Stream} of all Ts found, otherwise if none match an Empty Stream.
+	 */
+	Stream<T> getManyByIds(long... ids);
+	
+	/**
 	 * @return a {@link Stream} of all T considered major/significant
 	 * in the datasource e.g significance is implementation specific
 	 */
@@ -37,6 +43,7 @@ public interface DataAccessObject<T> {
 	 * 	a match.
 	 */
 	Stream<T> getMatches(int target, int n);
+
 	
 
 }

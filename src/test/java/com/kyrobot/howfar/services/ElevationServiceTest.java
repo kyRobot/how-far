@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.After;
 import org.junit.Before;
@@ -39,8 +40,7 @@ public class ElevationServiceTest {
 	@Before
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
-		final List<HighTarget> majors = newArrayList(new HighTarget(major_id, major_name, major_height));
-		when(mockDAO.getMajor()).thenReturn(majors.stream());
+		when(mockDAO.getMajor()).thenReturn(Stream.of(new HighTarget(major_id, major_name, major_height)));
 		ElevationService service = new ElevationService(mockDAO);
 		service.defineRoutes();
 		Spark.awaitInitialization();

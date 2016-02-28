@@ -1,5 +1,6 @@
 package com.kyrobot.howfar.data;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -36,14 +37,22 @@ public class InMemoryElevationStoreDAO implements DataAccessObject<HighTarget> {
 	@Override
 	public Optional<HighTarget> getById(long id) {
 		return STORE.parallelStream()
-				.filter(t -> t.getId() == id)
-				.findFirst();
+					.filter(t -> t.getId() == id)
+					.findFirst();
+	}
+	
+	@Override
+	public Stream<HighTarget> getManyByIds(long... ids) {
+		Arrays.sort(ids);
+		return STORE.parallelStream()
+					.filter(t -> Arrays.binarySearch(ids, t.getId()) >= 0);
+					
 	}
 
 	@Override
 	public Stream<HighTarget> getMajor() {
 		return STORE.parallelStream()
-				.filter(t -> t.getHeight() >= significantHeight);
+					.filter(t -> t.getHeight() >= significantHeight);
 				
 				
 	}
@@ -51,9 +60,9 @@ public class InMemoryElevationStoreDAO implements DataAccessObject<HighTarget> {
 	@Override
 	public Stream<HighTarget> getMatches(int target, int n) {
 		return STORE.parallelStream()
-				.filter(t -> t.getHeight() <= target)
-				.sorted((a,b) -> b.getHeight() - a.getHeight())
-				.limit(n);
+					.filter(t -> t.getHeight() <= target)
+					.sorted((a,b) -> b.getHeight() - a.getHeight())
+					.limit(n);
 	}
 
 }

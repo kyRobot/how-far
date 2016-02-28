@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,9 +42,38 @@ public class InMemoryElevationStoreDAOTest {
 	}
 	
 	@Test
+	public final void testGetManyByIdExists() {
+		final Set<HighTarget> target = dao.getManyByIds(5,2).collect(toSet());
+		Set<HighTarget> expected = Sets.newHashSet(
+				new HighTarget(2L, "The Shard", 306),
+				new HighTarget(5L, "London Eye", 134)
+				);
+		
+		assertEquals(expected, target);
+		
+	}
+	
+	@Test
 	public final void testGetByIdDoesntExist() {
 		final Optional<HighTarget> target = dao.getById(99);
 		assertFalse(target.isPresent());
+		
+	}
+	
+	@Test
+	public final void testGetManyByIdNoneExist() {
+		assertEquals(false, dao.getManyByIds(99, 100).anyMatch(x -> true)); // empty stream matches none
+		
+	}
+	
+	@Test
+	public final void testGetManyByIdOneExists() {
+		final Set<HighTarget> target = dao.getManyByIds(5,200).collect(toSet());
+		Set<HighTarget> expected = Sets.newHashSet(
+				new HighTarget(5L, "London Eye", 134)
+				);
+		
+		assertEquals(expected, target);
 		
 	}
 
@@ -66,16 +94,10 @@ public class InMemoryElevationStoreDAOTest {
 	@Test
 	public final void testGetMatches() {
 		final Set<HighTarget> matches = dao.getMatches(185, 3).collect(toSet());
-		final Set<HighTarget> expected = getMany(1,7,9);
+		final Set<HighTarget> expected = dao.getManyByIds(1,7,9).collect(toSet());
 		assertEquals(expected, matches);
 	}
 	
-	private Set<HighTarget> getMany(long... ids) {
-		return Arrays.stream(ids)
-				.mapToObj(dao::getById)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.collect(toSet());
-	}
+	
 
 }

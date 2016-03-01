@@ -23,6 +23,7 @@ import org.mockito.MockitoAnnotations;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
+import com.kyrobot.howfar.common.Transformers;
 import com.kyrobot.howfar.data.DataAccessObject;
 import com.kyrobot.howfar.model.ElevationMilestone;
 import com.kyrobot.howfar.model.HighTarget;
@@ -39,7 +40,7 @@ public class ElevationServiceTest {
 	private final String major_name = "Major Thing";
 	private final int major_height = 100;
 	
-	private final Gson gson = new Gson();
+	private final Gson gson = Transformers.getGson();
 	
 	@Mock DataAccessObject<HighTarget> mockDAO;
 

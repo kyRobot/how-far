@@ -1,5 +1,7 @@
 package com.kyrobot.howfar;
 
+import static spark.Spark.after;
+
 import java.util.Arrays;
 
 import com.kyrobot.howfar.data.InMemoryElevationStoreDAO;
@@ -20,5 +22,9 @@ public class Server
     {
         final RESTService[] services = {new ElevationService(new InMemoryElevationStoreDAO())};
         Arrays.stream(services).forEach(RESTService::defineRoutes);
+        
+        after((request, response) -> {
+            response.header("Content-Encoding", "gzip");
+        });
     }
 }

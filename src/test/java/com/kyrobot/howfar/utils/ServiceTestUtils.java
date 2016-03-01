@@ -9,6 +9,7 @@ public class ServiceTestUtils {
 	
 	public static String doGET(String url) throws Exception {
 		final HttpGet get = new HttpGet(url);
+		get.addHeader("Content-Encoding", "gzip");
 		final HttpEntity entity = HttpClients.createMinimal().execute(get).getEntity();
 		return EntityUtils.toString(entity);
 	}

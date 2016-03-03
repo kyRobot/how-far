@@ -1,14 +1,15 @@
 package com.kyrobot.howfar.services;
 
-import static com.kyrobot.howfar.common.Transformers.JSON;
-import static java.util.stream.Collectors.toList;
 import static spark.Spark.exception;
 import static spark.Spark.get;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.kyrobot.howfar.common.Functions;
+import com.kyrobot.howfar.common.HttpFragments;
+import com.kyrobot.howfar.common.Transformers;
 import com.kyrobot.howfar.data.DataAccessObject;
 import com.kyrobot.howfar.model.ElevationMilestone;
 import com.kyrobot.howfar.model.HighTarget;
@@ -19,7 +20,6 @@ import spark.Response;
 
 public class ElevationService implements RESTService {
 	
-	private static final String APPLICATION_JSON = "application/json";
 	private static final String API_ROOT = "/api/elevation";
 
 	public static final double METERS_PER_FLOOR = 3.048;
@@ -38,22 +38,22 @@ public class ElevationService implements RESTService {
 	public void defineRoutes() {
 		
 		get(API_ROOT + "/floors/:floors",
-			APPLICATION_JSON,
+			HttpFragments.APPLICATION_JSON,
 			(req, res) -> elevationResponse(req, res, ":floors", METERS_PER_FLOOR, PRECISION, MATCH_LIMIT),
-			JSON);
+			Transformers.toJSON);
 		
 		get(API_ROOT + "/meters/:meters",
-			APPLICATION_JSON, 
+			HttpFragments.APPLICATION_JSON, 
 			(req, res) ->  elevationResponse(req, res, ":meters", 1.0,  PRECISION, MATCH_LIMIT),
-			JSON);
+			Transformers.toJSON);
 		
 		get(API_ROOT + "/feet/:feet",
-			APPLICATION_JSON,
+			HttpFragments.APPLICATION_JSON,
 			(req, res) -> elevationResponse(req, res, ":feet", METERS_PER_FOOT, PRECISION, MATCH_LIMIT),
-			JSON);
+			Transformers.toJSON);
 		
 		exception(NumberFormatException.class, (e, req, res) -> {
-		    res.status(400);
+		    res.status(HttpFragments.BAD_REQUEST_400);
 		    res.body("Bad Request, expected a number");
 		});
 	}
@@ -82,7 +82,7 @@ public class ElevationService implements RESTService {
 	private List<ElevationMilestone> milestones(Stream<HighTarget> targets, double climbed, int completedPrecision)
 	{
 		return targets.map(t-> new ElevationMilestone(t, completed(climbed, t.getHeight(), completedPrecision)))
-				 .collect(toList());
+				 .collect(Collectors.toList());
 	}
 	
 }

@@ -2,6 +2,7 @@ package com.kyrobot.howfar.common;
 
 import static com.google.gson.FieldNamingPolicy.UPPER_CAMEL_CASE;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -18,11 +19,12 @@ public final class Transformers {
 		// no instantiation
 	}
 	
+	@VisibleForTesting
 	public static Gson getGson() {
 		return gson;
 	}
 
-	public static final ResponseTransformer JSON = o -> gson.toJson(o);
+	public static final ResponseTransformer toJSON = o -> gson.toJson(o);
 	
 }
 

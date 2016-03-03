@@ -22,8 +22,6 @@ import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
-import com.kyrobot.howfar.common.Transformers;
 import com.kyrobot.howfar.data.DataAccessObject;
 import com.kyrobot.howfar.model.ElevationMilestone;
 import com.kyrobot.howfar.model.HighTarget;
@@ -40,8 +38,6 @@ public class ElevationServiceTest {
 	private final String major_name = "Major Thing";
 	private final int major_height = 100;
 	
-	private final Gson gson = Transformers.getGson();
-	
 	@Mock DataAccessObject<HighTarget> mockDAO;
 
 	@Before
@@ -49,8 +45,7 @@ public class ElevationServiceTest {
 		MockitoAnnotations.initMocks(this);
 		when(mockDAO.getMajor()).thenReturn(Stream.of(new HighTarget(major_id, major_name, major_height)));
 		when(mockDAO.getMatches(anyDouble(), anyInt())).thenReturn(Stream.empty());
-		ElevationService service = new ElevationService(mockDAO);
-		service.defineRoutes();
+		new ElevationService(mockDAO).defineRoutes();;
 		Spark.awaitInitialization();
 	}
 
@@ -58,12 +53,12 @@ public class ElevationServiceTest {
 	public void tearDown() throws Exception {
 		Spark.stop();
 	}
-
+	
 	@Test
 	public void testMetersMajors() throws Exception {
 		final String json = ServiceTestUtils.doGET(API_ROOT + "meters/100");
-		final ElevationResponse elevationResponse = gson.fromJson(json, ElevationResponse.class);
-
+		final ElevationResponse elevationResponse = ServiceTestUtils.marshalJSON(json, ElevationResponse.class);
+		
 		final List<ElevationMilestone> majorMilestones = newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
 		
@@ -82,7 +77,7 @@ public class ElevationServiceTest {
 		// Expect completion -> 0.152 to 3 decimal places
 		
 		final String json = ServiceTestUtils.doGET(API_ROOT + "floors/5");
-		final ElevationResponse elevationResponse = gson.fromJson(json, ElevationResponse.class);
+		final ElevationResponse elevationResponse = ServiceTestUtils.marshalJSON(json, ElevationResponse.class);
 		
 		final List<ElevationMilestone> majorMilestones = Lists.newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
@@ -93,7 +88,6 @@ public class ElevationServiceTest {
 		
 		final HighTarget target = majorMilestones.get(0).milestone;
 		checkTarget(target, major_id, major_name, major_height);
-		
 	}
 	
 	@Test
@@ -103,7 +97,7 @@ public class ElevationServiceTest {
 		// Expect completion -> 0.024 to 3 decimal places
 		
 		final String json = ServiceTestUtils.doGET(API_ROOT + "feet/8");
-		final ElevationResponse elevationResponse = gson.fromJson(json, ElevationResponse.class);
+		final ElevationResponse elevationResponse = ServiceTestUtils.marshalJSON(json, ElevationResponse.class);
 		
 		final List<ElevationMilestone> majorMilestones = Lists.newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
@@ -114,7 +108,6 @@ public class ElevationServiceTest {
 		
 		final HighTarget target = majorMilestones.get(0).milestone;
 		checkTarget(target, major_id, major_name, major_height);
-		
 	}
 	
 	
@@ -127,7 +120,7 @@ public class ElevationServiceTest {
 		when(mockDAO.getMatches(anyDouble(), anyInt())).thenReturn(Stream.of(three, two, one));
 		
 		final String json = ServiceTestUtils.doGET(API_ROOT + "meters/3");
-		final ElevationResponse elevationResponse = gson.fromJson(json, ElevationResponse.class);
+		final ElevationResponse elevationResponse = ServiceTestUtils.marshalJSON(json, ElevationResponse.class);
 		
 		final Collection<ElevationMilestone> closest = elevationResponse.getClosestAchievements();
 		assertTrue(closest.size() == 3);
@@ -137,6 +130,7 @@ public class ElevationServiceTest {
 		assertEquals(Sets.newHashSet(one, two, three), closestTargets);
 		assertEquals(Sets.newHashSet(1.0, 1.5, 3.0), closestCompletions);
 	}
+	
 	private void checkTarget(HighTarget target, long expectedId, String expectedName, int expectedHeight) {
 		assertNotNull(target);
 		assertEquals(expectedName, target.getName());

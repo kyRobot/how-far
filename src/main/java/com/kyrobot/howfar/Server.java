@@ -2,29 +2,26 @@ package com.kyrobot.howfar;
 
 import static spark.Spark.after;
 
-import java.util.Arrays;
+import java.util.stream.Stream;
 
+import com.kyrobot.howfar.common.HttpFragments;
 import com.kyrobot.howfar.data.InMemoryElevationStoreDAO;
 import com.kyrobot.howfar.services.ElevationService;
 import com.kyrobot.howfar.services.RESTService;
 
 /**
- * Main App Entry point
+ * Application Entry point
  *
  */
 public class Server 
 {
-	public static class WelcomeMessage {
-		public String greeting;
-	}
-	
     public static void main( String[] args )
     {
-        final RESTService[] services = {new ElevationService(new InMemoryElevationStoreDAO())};
-        Arrays.stream(services).forEach(RESTService::defineRoutes);
+        Stream.of(new ElevationService(new InMemoryElevationStoreDAO()))
+        	.forEach(RESTService::defineRoutes);
         
         after((request, response) -> {
-            response.header("Content-Encoding", "gzip");
+            response.header(HttpFragments.CONTENT_ENCODING, HttpFragments.GZIP);
         });
     }
 }

@@ -62,12 +62,13 @@ public class ElevationService implements RESTService {
 			Response res,
 			String paramKey,
 			double conversionMultiplier,
-			int completionPrecision,
-			int numberOfClosestMatches) {
-		final double climbed = convert(req.params(paramKey), conversionMultiplier);
+			int precision,
+			int nToFind) {
+		final double metersClimbed = convert(req.params(paramKey), conversionMultiplier);
 		final ElevationResponse.Builder builder = ElevationResponse.builder();
-		builder.majorMilestones(milestones(dao.getMajor(), climbed, completionPrecision));
-		builder.closest(milestones(dao.getMatches(climbed, numberOfClosestMatches), climbed, completionPrecision));
+		builder.target(metersClimbed);
+		builder.majorMilestones(milestones(dao.getMajor(), metersClimbed, precision));
+		builder.closest(milestones(dao.getMatches(metersClimbed, nToFind), metersClimbed, precision));
 		return builder.build();
 	}
 	

@@ -54,10 +54,34 @@ public class ElevationServiceTest {
 		Spark.stop();
 	}
 	
+	private static ElevationResponse callAPI(String uri) throws Exception
+	{
+		return ServiceTestUtils.marshalJSON(
+				ServiceTestUtils.doGET(API_ROOT + uri),
+				ElevationResponse.class);
+	}
+	
+	@Test
+	public void testTargetHeightMeters() throws Exception {
+		final ElevationResponse elevationResponse = callAPI("meters/9876");
+		assertEquals(9876, elevationResponse.getTargetHeight(), 0.0);
+	}
+	
+	@Test
+	public void testTargetHeightFeet() throws Exception {
+		final ElevationResponse elevationResponse = callAPI("feet/85");
+		assertEquals(25.908, elevationResponse.getTargetHeight(), 0.0);
+	}
+	
+	@Test
+	public void testTargetHeightFloors() throws Exception {
+		final ElevationResponse elevationResponse = callAPI("floors/1");
+		assertEquals(3.048, elevationResponse.getTargetHeight(), 0.0);
+	}
+	
 	@Test
 	public void testMetersMajors() throws Exception {
-		final String json = ServiceTestUtils.doGET(API_ROOT + "meters/100");
-		final ElevationResponse elevationResponse = ServiceTestUtils.marshalJSON(json, ElevationResponse.class);
+		final ElevationResponse elevationResponse = callAPI("meters/100");
 		
 		final List<ElevationMilestone> majorMilestones = newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
@@ -76,9 +100,7 @@ public class ElevationServiceTest {
 		// Target is 100 meters
 		// Expect completion -> 0.152 to 3 decimal places
 		
-		final String json = ServiceTestUtils.doGET(API_ROOT + "floors/5");
-		final ElevationResponse elevationResponse = ServiceTestUtils.marshalJSON(json, ElevationResponse.class);
-		
+		final ElevationResponse elevationResponse = callAPI("floors/5");		
 		final List<ElevationMilestone> majorMilestones = Lists.newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
 		
@@ -95,9 +117,7 @@ public class ElevationServiceTest {
 		// A Foot is 0.3048 -> 8 feet is 2.4384m
 		// Target is 100 meters
 		// Expect completion -> 0.024 to 3 decimal places
-		
-		final String json = ServiceTestUtils.doGET(API_ROOT + "feet/8");
-		final ElevationResponse elevationResponse = ServiceTestUtils.marshalJSON(json, ElevationResponse.class);
+		final ElevationResponse elevationResponse = callAPI("feet/8");
 		
 		final List<ElevationMilestone> majorMilestones = Lists.newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
@@ -119,8 +139,7 @@ public class ElevationServiceTest {
 		
 		when(mockDAO.getMatches(anyDouble(), anyInt())).thenReturn(Stream.of(three, two, one));
 		
-		final String json = ServiceTestUtils.doGET(API_ROOT + "meters/3");
-		final ElevationResponse elevationResponse = ServiceTestUtils.marshalJSON(json, ElevationResponse.class);
+		final ElevationResponse elevationResponse = callAPI("meters/3");
 		
 		final Collection<ElevationMilestone> closest = elevationResponse.getClosestAchievements();
 		assertTrue(closest.size() == 3);

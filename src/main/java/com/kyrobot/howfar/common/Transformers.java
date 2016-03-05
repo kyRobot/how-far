@@ -1,8 +1,7 @@
 package com.kyrobot.howfar.common;
 
-import static com.google.gson.FieldNamingPolicy.UPPER_CAMEL_CASE;
-
 import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -12,7 +11,7 @@ public final class Transformers {
 	
 	private static Gson gson = new GsonBuilder()
 									.setPrettyPrinting()
-									.setFieldNamingPolicy(UPPER_CAMEL_CASE)
+									.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
 									.create();
 	
 	private Transformers() {

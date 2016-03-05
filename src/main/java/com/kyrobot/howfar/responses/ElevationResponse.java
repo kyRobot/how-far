@@ -4,12 +4,10 @@ import java.util.Collection;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
-import com.google.gson.annotations.SerializedName;
 import com.kyrobot.howfar.model.ElevationMilestone;
 
 public final class ElevationResponse {
 	private final double targetHeight;
-	@SerializedName("AutoHeightConversion")
 	private final Boolean heightConverted;
 	
 	private final Collection<ElevationMilestone> majorMilestones;

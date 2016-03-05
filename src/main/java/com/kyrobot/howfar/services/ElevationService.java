@@ -26,7 +26,7 @@ public class ElevationService implements RESTService {
 	public static final double METERS_PER_FOOT = 0.3048;
 	
 	private static final int PRECISION = 3; //decimal places, not sig figs
-	private static final int MATCH_LIMIT = 3;
+	private static final int MATCH_LIMIT = 2;
 	
 	private final DataAccessObject<HighTarget> dao;
 	
@@ -71,15 +71,15 @@ public class ElevationService implements RESTService {
 		return builder.build();
 	}
 	
-	private Double convert(String userInput, Double multiplierToMeters) {
+	private static Double convert(String userInput, Double multiplierToMeters) {
 		return Functions.converter.apply(multiplierToMeters, userInput);
 	}
 	
-	private Double completed(final double done, final int target, final int precision) {
+	private static Double completed(final double done, final int target, final int precision) {
 		return Functions.toNplaces.apply(precision, done/target);
 	}
 	
-	private List<ElevationMilestone> milestones(Stream<HighTarget> targets, double climbed, int completedPrecision)
+	private static List<ElevationMilestone> milestones(Stream<HighTarget> targets, double climbed, int completedPrecision)
 	{
 		return targets.map(t-> new ElevationMilestone(t, completed(climbed, t.getHeight(), completedPrecision)))
 				 .collect(Collectors.toList());

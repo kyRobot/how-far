@@ -92,9 +92,17 @@ public class InMemoryElevationStoreDAOTest {
 	}
 
 	@Test
-	public final void testGetMatches() {
+	public final void testGet3Matches() {
+		// expect 2 higher, one lower
 		final Set<HighTarget> matches = dao.getMatches(185, 3).collect(toSet());
-		final Set<HighTarget> expected = dao.getManyByIds(1,7,9).collect(toSet());
+		final Set<HighTarget> expected = dao.getManyByIds(7, 6, 2).collect(toSet());
+		assertEquals(expected, matches);
+	}
+	@Test
+	public final void testGet2Matches() {
+		// expect one higher one lower
+		final Set<HighTarget> matches = dao.getMatches(185, 2).collect(toSet());
+		final Set<HighTarget> expected = dao.getManyByIds(7, 6).collect(toSet());
 		assertEquals(expected, matches);
 	}
 	

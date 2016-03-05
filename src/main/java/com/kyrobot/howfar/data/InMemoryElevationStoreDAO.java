@@ -57,12 +57,29 @@ public class InMemoryElevationStoreDAO implements DataAccessObject<HighTarget> {
 				
 	}
 
+	/**
+	 * @param see {@link DataAccessObject#getMatches(double, int)
+	 * @param see {@link DataAccessObject}{@link #getMatches(double, int)}
+	 * @return the at most n {@link HighTarget}s that are closest to target in height,
+	 * 	both taller and shorter targets will be returned. If n is odd then targets
+	 * 	taller than target will benefit from the extra item e.g if n is 3 then 2 taller
+	 *  and 1 shorter will be returned (if found)
+	 */
 	@Override
 	public Stream<HighTarget> getMatches(double target, int n) {
-		return STORE.stream()
-					.filter(t -> t.getHeight() <= target)
+		final int shortLimit = n / 2;
+		final int tallLimit = (n % 2 == 1) ? shortLimit + 1 : shortLimit;
+		final Stream<HighTarget> shorter = STORE.stream()
+					.filter(t -> t.getHeight() < target)
 					.sorted((a,b) -> b.getHeight() - a.getHeight())
-					.limit(n);
+					.limit(shortLimit);
+		
+		final Stream<HighTarget> taller = STORE.stream()
+					.filter(t -> t.getHeight() >= target)
+					.sorted((a,b) -> a.getHeight() - b.getHeight())
+					.limit(tallLimit);
+		
+		return Stream.concat(shorter, taller);
 	}
 
 }

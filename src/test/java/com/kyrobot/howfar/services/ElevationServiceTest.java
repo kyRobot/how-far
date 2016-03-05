@@ -131,7 +131,7 @@ public class ElevationServiceTest {
 		assertEquals(Sets.newHashSet(1.0, 1.5, 3.0), closestCompletions);
 	}
 	
-	private void checkTarget(HighTarget target, long expectedId, String expectedName, int expectedHeight) {
+	private static void checkTarget(HighTarget target, long expectedId, String expectedName, int expectedHeight) {
 		assertNotNull(target);
 		assertEquals(expectedName, target.getName());
 		assertEquals(expectedHeight, target.getHeight());

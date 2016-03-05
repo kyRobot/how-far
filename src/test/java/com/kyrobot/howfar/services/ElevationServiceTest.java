@@ -4,6 +4,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
@@ -65,18 +66,21 @@ public class ElevationServiceTest {
 	public void testTargetHeightMeters() throws Exception {
 		final ElevationResponse elevationResponse = callAPI("meters/9876");
 		assertEquals(9876, elevationResponse.getTargetHeight(), 0.0);
+		assertNull(elevationResponse.isHeightConverted());
 	}
 	
 	@Test
 	public void testTargetHeightFeet() throws Exception {
 		final ElevationResponse elevationResponse = callAPI("feet/85");
 		assertEquals(25.908, elevationResponse.getTargetHeight(), 0.0);
+		assertTrue(elevationResponse.isHeightConverted());
 	}
 	
 	@Test
 	public void testTargetHeightFloors() throws Exception {
 		final ElevationResponse elevationResponse = callAPI("floors/1");
 		assertEquals(3.048, elevationResponse.getTargetHeight(), 0.0);
+		assertTrue(elevationResponse.isHeightConverted());
 	}
 	
 	@Test

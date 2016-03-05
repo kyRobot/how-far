@@ -24,6 +24,7 @@ public class ElevationService implements RESTService {
 
 	public static final double METERS_PER_FLOOR = 3.048;
 	public static final double METERS_PER_FOOT = 0.3048;
+	public static final double NO_CONVERSION = 1.0;
 	
 	private static final int PRECISION = 3; //decimal places, not sig figs
 	private static final int MATCH_LIMIT = 2;
@@ -44,7 +45,7 @@ public class ElevationService implements RESTService {
 		
 		get(API_ROOT + "/meters/:meters",
 			HttpFragments.APPLICATION_JSON, 
-			(req, res) ->  elevationResponse(req, res, ":meters", 1.0,  PRECISION, MATCH_LIMIT),
+			(req, res) ->  elevationResponse(req, res, ":meters", NO_CONVERSION,  PRECISION, MATCH_LIMIT),
 			Transformers.toJSON);
 		
 		get(API_ROOT + "/feet/:feet",
@@ -66,7 +67,7 @@ public class ElevationService implements RESTService {
 			int nToFind) {
 		final double metersClimbed = convert(req.params(paramKey), conversionMultiplier);
 		final ElevationResponse.Builder builder = ElevationResponse.builder();
-		builder.target(metersClimbed);
+		builder.target(metersClimbed, conversionMultiplier != NO_CONVERSION);
 		builder.majorMilestones(milestones(dao.getMajor(), metersClimbed, precision));
 		builder.closest(milestones(dao.getMatches(metersClimbed, nToFind), metersClimbed, precision));
 		return builder.build();

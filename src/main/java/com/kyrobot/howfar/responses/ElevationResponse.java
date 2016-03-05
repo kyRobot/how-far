@@ -4,24 +4,35 @@ import java.util.Collection;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+import com.google.gson.annotations.SerializedName;
 import com.kyrobot.howfar.model.ElevationMilestone;
 
 public final class ElevationResponse {
 	private final double targetHeight;
+	@SerializedName("AutoHeightConversion")
+	private final Boolean heightConverted;
+	
 	private final Collection<ElevationMilestone> majorMilestones;
 	private final Collection<ElevationMilestone> closestAchievements;
 	
-	private ElevationResponse(double targetHeight, 
+	
+	private ElevationResponse(double targetHeight,
+			Boolean heightConverted,
 			Collection<ElevationMilestone> majorMilestones,
 			Collection<ElevationMilestone> closestAchievements)
 	{
 		this.targetHeight = targetHeight;
+		this.heightConverted = heightConverted;
 		this.majorMilestones = majorMilestones;
 		this.closestAchievements = closestAchievements;
 	}
 	
 	public double getTargetHeight() {
 		return targetHeight;
+	}
+	
+	public Boolean isHeightConverted() {
+		return heightConverted;
 	}
 	
 	public Collection<ElevationMilestone> getMajorMilestones() {
@@ -37,9 +48,10 @@ public final class ElevationResponse {
 	}
 	
 	public static class Builder {
-		Set<ElevationMilestone> majors = Sets.newConcurrentHashSet();
-		Set<ElevationMilestone> closest = Sets.newConcurrentHashSet();
+		private final Set<ElevationMilestone> majors = Sets.newConcurrentHashSet();
+		private final Set<ElevationMilestone> closest = Sets.newConcurrentHashSet();
 		private double target;
+		private Boolean heightConverted;
 		
 		private Builder() {
 		}
@@ -55,15 +67,16 @@ public final class ElevationResponse {
 			return this;
 		}
 		
-		public ElevationResponse.Builder target(double height)
+		public ElevationResponse.Builder target(double height, boolean converted)
 		{
 			this.target = height;
+			if (converted) this.heightConverted = converted;
 			return this;
-			
 		}
 		
+		
 		public ElevationResponse build() {
-			return new ElevationResponse(target, majors, closest);
+			return new ElevationResponse(target, heightConverted, majors, closest);
 		}
 		
 		

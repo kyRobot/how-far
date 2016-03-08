@@ -14,6 +14,7 @@ import com.kyrobot.howfar.data.DataAccessObject;
 import com.kyrobot.howfar.model.ElevationMilestone;
 import com.kyrobot.howfar.model.HighTarget;
 import com.kyrobot.howfar.responses.ElevationResponse;
+import com.kyrobot.howfar.responses.ErrorResponse;
 
 import spark.Request;
 import spark.Response;
@@ -55,7 +56,13 @@ public class ElevationService implements RESTService {
 		
 		exception(NumberFormatException.class, (e, req, res) -> {
 		    res.status(HttpFragments.BAD_REQUEST_400);
-		    res.body("Bad Request, expected a number");
+		    final String message = "Bad Request, expected a number";
+		    try {
+				res.body(Transformers.toJSON.render(new ErrorResponse(message)));
+			} catch (Exception ex) {
+				// Transform to JSON failed, fall back to non-JSON response
+				res.body(message);
+			}
 		});
 	}
 	

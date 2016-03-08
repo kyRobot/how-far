@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,10 +25,12 @@ import org.mockito.MockitoAnnotations;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.kyrobot.howfar.common.HttpFragments;
 import com.kyrobot.howfar.data.DataAccessObject;
 import com.kyrobot.howfar.model.ElevationMilestone;
 import com.kyrobot.howfar.model.HighTarget;
 import com.kyrobot.howfar.responses.ElevationResponse;
+import com.kyrobot.howfar.responses.ErrorResponse;
 import com.kyrobot.howfar.utils.ServiceTestUtils;
 
 import spark.Spark;
@@ -62,6 +66,16 @@ public class ElevationServiceTest {
 				ElevationResponse.class);
 	}
 	
+	private static ErrorResponse callAPIIncorrectly(String uri,
+			int expectedStatus) throws Exception
+	{
+		final HttpResponse getResponse = ServiceTestUtils.doGETResponse(API_ROOT + uri);
+		assertEquals(expectedStatus, getResponse.getStatusLine().getStatusCode());
+		return ServiceTestUtils.marshalJSON(
+				EntityUtils.toString(getResponse.getEntity()),
+				ErrorResponse.class);
+	}
+	
 	@Test
 	public void testTargetHeightMeters() throws Exception {
 		final ElevationResponse elevationResponse = callAPI("meters/9876");
@@ -84,6 +98,12 @@ public class ElevationServiceTest {
 	}
 	
 	@Test
+	public void testTargetHeightAlphabetic() throws Exception {
+		final ErrorResponse errorResponse = callAPIIncorrectly("floors/xyz", HttpFragments.BAD_REQUEST_400);
+		assertNotNull(errorResponse.getMessage());
+	}
+	
+	@Test
 	public void testMetersMajors() throws Exception {
 		final ElevationResponse elevationResponse = callAPI("meters/100");
 		
@@ -94,7 +114,7 @@ public class ElevationServiceTest {
 		assertNotNull(completion);
 		assertEquals(1.0, completion, 0);
 		
-		final HighTarget target = majorMilestones.get(0).milestone;
+		final HighTarget target = majorMilestones.get(0).goal;
 		checkTarget(target, major_id, major_name, major_height);
 	}
 	
@@ -112,7 +132,7 @@ public class ElevationServiceTest {
 		assertNotNull(completion);
 		assertEquals(0.152, completion, 0);
 		
-		final HighTarget target = majorMilestones.get(0).milestone;
+		final HighTarget target = majorMilestones.get(0).goal;
 		checkTarget(target, major_id, major_name, major_height);
 	}
 	
@@ -130,7 +150,7 @@ public class ElevationServiceTest {
 		assertNotNull(completion);
 		assertEquals(0.024, completion, 0);
 		
-		final HighTarget target = majorMilestones.get(0).milestone;
+		final HighTarget target = majorMilestones.get(0).goal;
 		checkTarget(target, major_id, major_name, major_height);
 	}
 	
@@ -148,7 +168,7 @@ public class ElevationServiceTest {
 		final Collection<ElevationMilestone> closest = elevationResponse.getClosestAchievements();
 		assertTrue(closest.size() == 3);
 		
-		final Set<HighTarget> closestTargets = closest.stream().map(em -> em.milestone).collect(toSet());
+		final Set<HighTarget> closestTargets = closest.stream().map(em -> em.goal).collect(toSet());
 		final Set<Double> closestCompletions = closest.stream().map(em -> em.completion).collect(toSet());
 		assertEquals(Sets.newHashSet(one, two, three), closestTargets);
 		assertEquals(Sets.newHashSet(1.0, 1.5, 3.0), closestCompletions);

@@ -1,6 +1,5 @@
 package com.kyrobot.howfar.services;
 
-import static spark.Spark.exception;
 import static spark.Spark.get;
 
 import java.util.List;
@@ -13,8 +12,8 @@ import com.kyrobot.howfar.common.Transformers;
 import com.kyrobot.howfar.data.DataAccessObject;
 import com.kyrobot.howfar.model.ElevationMilestone;
 import com.kyrobot.howfar.model.HighTarget;
+import com.kyrobot.howfar.reporting.ServerRuntimeException;
 import com.kyrobot.howfar.responses.ElevationResponse;
-import com.kyrobot.howfar.responses.ErrorResponse;
 
 import spark.Request;
 import spark.Response;
@@ -53,17 +52,6 @@ public class ElevationService implements RESTService {
 			HttpFragments.APPLICATION_JSON,
 			(req, res) -> elevationResponse(req, res, ":feet", METERS_PER_FOOT, PRECISION, MATCH_LIMIT),
 			Transformers.toJSON);
-		
-		exception(NumberFormatException.class, (e, req, res) -> {
-		    res.status(HttpFragments.BAD_REQUEST_400);
-		    final String message = "Bad Request, expected a number";
-		    try {
-				res.body(Transformers.toJSON.render(new ErrorResponse(message)));
-			} catch (Exception ex) {
-				// Transform to JSON failed, fall back to non-JSON response
-				res.body(message);
-			}
-		});
 	}
 	
 	private ElevationResponse elevationResponse(Request req,
@@ -81,7 +69,13 @@ public class ElevationService implements RESTService {
 	}
 	
 	private static Double convert(String userInput, Double multiplierToMeters) {
-		return Functions.converter.apply(multiplierToMeters, userInput);
+		try {
+			return Functions.converter.apply(multiplierToMeters, userInput);
+		} catch (NumberFormatException ex)
+		{
+			throw new ServerRuntimeException(ex, HttpFragments.BAD_REQUEST_400,
+					"Bad request, expected a number!");
+		}
 	}
 	
 	private static Double completed(final double done, final int target, final int precision) {

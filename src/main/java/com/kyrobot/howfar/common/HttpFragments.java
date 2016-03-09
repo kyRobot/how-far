@@ -22,5 +22,7 @@ public final class HttpFragments {
 	
 	// STATUS CODES
 	public static final int BAD_REQUEST_400 = 400;
+	public static final int SERVER_ERROR_500 = 500;
+	
 
 }

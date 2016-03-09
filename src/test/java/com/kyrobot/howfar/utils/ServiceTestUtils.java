@@ -8,6 +8,7 @@ import org.apache.http.util.EntityUtils;
 
 import com.google.common.net.HttpHeaders;
 import com.google.gson.Gson;
+import com.kyrobot.howfar.Server;
 import com.kyrobot.howfar.common.HttpFragments;
 import com.kyrobot.howfar.common.Transformers;
 
@@ -40,6 +41,10 @@ public class ServiceTestUtils {
 	
 	public static <T> T marshalJSON(String json, Class<T> model) {
 		return productionGson.fromJson(json, model);
+	}
+	
+	public static void triggerProductionExceptionMappings() {
+		Server.mapExceptions();
 	}
 	
 	

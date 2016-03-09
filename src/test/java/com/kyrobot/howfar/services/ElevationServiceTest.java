@@ -50,7 +50,8 @@ public class ElevationServiceTest {
 		MockitoAnnotations.initMocks(this);
 		when(mockDAO.getMajor()).thenReturn(Stream.of(new HighTarget(major_id, major_name, major_height)));
 		when(mockDAO.getMatches(anyDouble(), anyInt())).thenReturn(Stream.empty());
-		new ElevationService(mockDAO).defineRoutes();;
+		new ElevationService(mockDAO).defineRoutes();
+		ServiceTestUtils.triggerProductionExceptionMappings();
 		Spark.awaitInitialization();
 	}
 

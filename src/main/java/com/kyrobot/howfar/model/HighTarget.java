@@ -58,7 +58,5 @@ public final class HighTarget {
 	public String toString() {
 		return "HighTarget [id=" + id + ", name=" + name + ", height=" + height + "]";
 	}
-	
-	
 
 }

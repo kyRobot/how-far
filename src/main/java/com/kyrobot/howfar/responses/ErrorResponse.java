@@ -10,5 +10,5 @@ public final class ErrorResponse {
 	public String getMessage() {
 		return this.message;
 	}
-	
+
 }

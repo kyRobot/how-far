@@ -36,14 +36,15 @@ import com.kyrobot.howfar.utils.ServiceTestUtils;
 import spark.Spark;
 
 public class ElevationServiceTest {
-	
+
 	private final static String API_ROOT = "http://0.0.0.0:4567/api/elevation/";
-	
+
 	private final long major_id = 0L;
 	private final String major_name = "Major Thing";
 	private final int major_height = 100;
-	
-	@Mock DataAccessObject<HighTarget> mockDAO;
+
+	@Mock
+	DataAccessObject<HighTarget> mockDAO;
 
 	@Before
 	public void setUp() throws Exception {
@@ -59,122 +60,114 @@ public class ElevationServiceTest {
 	public void tearDown() throws Exception {
 		Spark.stop();
 	}
-	
-	private static ElevationResponse callAPI(String uri) throws Exception
-	{
-		return ServiceTestUtils.marshalJSON(
-				ServiceTestUtils.doGET(API_ROOT + uri),
-				ElevationResponse.class);
+
+	private static ElevationResponse callAPI(String uri) throws Exception {
+		return ServiceTestUtils.marshalJSON(ServiceTestUtils.doGET(API_ROOT + uri), ElevationResponse.class);
 	}
-	
-	private static ErrorResponse callAPIIncorrectly(String uri,
-			int expectedStatus) throws Exception
-	{
+
+	private static ErrorResponse callAPIIncorrectly(String uri, int expectedStatus) throws Exception {
 		final HttpResponse getResponse = ServiceTestUtils.doGETResponse(API_ROOT + uri);
 		assertEquals(expectedStatus, getResponse.getStatusLine().getStatusCode());
-		return ServiceTestUtils.marshalJSON(
-				EntityUtils.toString(getResponse.getEntity()),
-				ErrorResponse.class);
+		return ServiceTestUtils.marshalJSON(EntityUtils.toString(getResponse.getEntity()), ErrorResponse.class);
 	}
-	
+
 	@Test
 	public void testTargetHeightMeters() throws Exception {
 		final ElevationResponse elevationResponse = callAPI("meters/9876");
 		assertEquals(9876, elevationResponse.getTargetHeight(), 0.0);
 		assertNull(elevationResponse.isHeightConverted());
 	}
-	
+
 	@Test
 	public void testTargetHeightFeet() throws Exception {
 		final ElevationResponse elevationResponse = callAPI("feet/85");
 		assertEquals(25.908, elevationResponse.getTargetHeight(), 0.0);
 		assertTrue(elevationResponse.isHeightConverted());
 	}
-	
+
 	@Test
 	public void testTargetHeightFloors() throws Exception {
 		final ElevationResponse elevationResponse = callAPI("floors/1");
 		assertEquals(3.048, elevationResponse.getTargetHeight(), 0.0);
 		assertTrue(elevationResponse.isHeightConverted());
 	}
-	
+
 	@Test
 	public void testTargetHeightAlphabetic() throws Exception {
 		final ErrorResponse errorResponse = callAPIIncorrectly("floors/xyz", HttpFragments.BAD_REQUEST_400);
 		assertNotNull(errorResponse.getMessage());
 	}
-	
+
 	@Test
 	public void testMetersMajors() throws Exception {
 		final ElevationResponse elevationResponse = callAPI("meters/100");
-		
+
 		final List<ElevationMilestone> majorMilestones = newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
-		
+
 		double completion = majorMilestones.get(0).completion;
 		assertNotNull(completion);
 		assertEquals(1.0, completion, 0);
-		
+
 		final HighTarget target = majorMilestones.get(0).goal;
 		checkTarget(target, major_id, major_name, major_height);
 	}
-	
+
 	@Test
 	public void testFloorsMajors() throws Exception {
 		// A Floor is 3.048 meters -> 5 floors is 15.24m
 		// Target is 100 meters
 		// Expect completion -> 0.152 to 3 decimal places
-		
-		final ElevationResponse elevationResponse = callAPI("floors/5");		
+
+		final ElevationResponse elevationResponse = callAPI("floors/5");
 		final List<ElevationMilestone> majorMilestones = Lists.newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
-		
+
 		double completion = majorMilestones.get(0).completion;
 		assertNotNull(completion);
 		assertEquals(0.152, completion, 0);
-		
+
 		final HighTarget target = majorMilestones.get(0).goal;
 		checkTarget(target, major_id, major_name, major_height);
 	}
-	
+
 	@Test
 	public void testFeetMajors() throws Exception {
 		// A Foot is 0.3048 -> 8 feet is 2.4384m
 		// Target is 100 meters
 		// Expect completion -> 0.024 to 3 decimal places
 		final ElevationResponse elevationResponse = callAPI("feet/8");
-		
+
 		final List<ElevationMilestone> majorMilestones = Lists.newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
-		
+
 		double completion = majorMilestones.get(0).completion;
 		assertNotNull(completion);
 		assertEquals(0.024, completion, 0);
-		
+
 		final HighTarget target = majorMilestones.get(0).goal;
 		checkTarget(target, major_id, major_name, major_height);
 	}
-	
-	
+
 	@Test
 	public void testMetersClosest() throws Exception {
 		final HighTarget one = new HighTarget(1, "One", 1);
 		final HighTarget two = new HighTarget(2, "Two", 2);
 		final HighTarget three = new HighTarget(3, "Three", 3);
-		
+
 		when(mockDAO.getMatches(anyDouble(), anyInt())).thenReturn(Stream.of(three, two, one));
-		
+
 		final ElevationResponse elevationResponse = callAPI("meters/3");
-		
+
 		final Collection<ElevationMilestone> closest = elevationResponse.getClosestAchievements();
 		assertTrue(closest.size() == 3);
-		
+
 		final Set<HighTarget> closestTargets = closest.stream().map(em -> em.goal).collect(toSet());
 		final Set<Double> closestCompletions = closest.stream().map(em -> em.completion).collect(toSet());
 		assertEquals(Sets.newHashSet(one, two, three), closestTargets);
 		assertEquals(Sets.newHashSet(1.0, 1.5, 3.0), closestCompletions);
 	}
-	
+
 	private static void checkTarget(HighTarget target, long expectedId, String expectedName, int expectedHeight) {
 		assertNotNull(target);
 		assertEquals(expectedName, target.getName());

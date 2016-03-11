@@ -13,11 +13,12 @@ import com.kyrobot.howfar.common.HttpFragments;
 import com.kyrobot.howfar.common.Transformers;
 
 public class ServiceTestUtils {
-	
+
 	private static Gson productionGson = Transformers.getGson();
-	
+
 	/**
-	 * @param url the URL to call, as a String
+	 * @param url
+	 *            the URL to call, as a String
 	 * @return the String representation of the resulting response entity
 	 * @throws Exception
 	 */
@@ -27,9 +28,10 @@ public class ServiceTestUtils {
 		final HttpEntity entity = HttpClients.createMinimal().execute(get).getEntity();
 		return EntityUtils.toString(entity);
 	}
-	
+
 	/**
-	 * @param url the URL to call, as a String
+	 * @param url
+	 *            the URL to call, as a String
 	 * @return the {@link HttpResponse}
 	 * @throws Exception
 	 */
@@ -38,14 +40,13 @@ public class ServiceTestUtils {
 		get.addHeader(HttpHeaders.CONTENT_ENCODING, HttpFragments.GZIP);
 		return HttpClients.createMinimal().execute(get);
 	}
-	
+
 	public static <T> T marshalJSON(String json, Class<T> model) {
 		return productionGson.fromJson(json, model);
 	}
-	
+
 	public static void triggerProductionExceptionMappings() {
 		Server.mapExceptions();
 	}
-	
-	
+
 }

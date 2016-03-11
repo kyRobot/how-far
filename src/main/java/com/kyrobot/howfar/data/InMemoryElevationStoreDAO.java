@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableList.Builder;
 import com.kyrobot.howfar.model.HighTarget;
 
 public class InMemoryElevationStoreDAO implements DataAccessObject<HighTarget> {
-	
+
 	private final List<HighTarget> STORE;
 	private final int significantHeight = 300;
 
@@ -28,7 +28,7 @@ public class InMemoryElevationStoreDAO implements DataAccessObject<HighTarget> {
 		immutableModel.add(new HighTarget(9L, "Walkie Talkie", 160));
 		STORE = immutableModel.build();
 	}
-	
+
 	@Override
 	public Stream<HighTarget> getAll() {
 		return STORE.stream();
@@ -37,48 +37,50 @@ public class InMemoryElevationStoreDAO implements DataAccessObject<HighTarget> {
 	@Override
 	public Optional<HighTarget> getById(long id) {
 		return STORE.parallelStream()
-					.filter(t -> t.getId() == id)
-					.findFirst();
+				.filter(t -> t.getId() == id)
+				.findFirst();
 	}
-	
+
 	@Override
 	public Stream<HighTarget> getManyByIds(long... ids) {
 		Arrays.sort(ids);
 		return STORE.parallelStream()
-					.filter(t -> Arrays.binarySearch(ids, t.getId()) >= 0);
-					
+				.filter(t -> Arrays.binarySearch(ids, t.getId()) >= 0);
+
 	}
 
 	@Override
 	public Stream<HighTarget> getMajor() {
 		return STORE.parallelStream()
-					.filter(t -> t.getHeight() >= significantHeight);
-				
-				
+				.filter(t -> t.getHeight() >= significantHeight);
+
 	}
 
 	/**
-	 * @param see {@link DataAccessObject#getMatches(double, int)
-	 * @param see {@link DataAccessObject}{@link #getMatches(double, int)}
-	 * @return the at most n {@link HighTarget}s that are closest to target in height,
-	 * 	both taller and shorter targets will be returned. If n is odd then targets
-	 * 	taller than target will benefit from the extra item e.g if n is 3 then 2 taller
-	 *  and 1 shorter will be returned (if found)
+	 * @param see
+	 *            {@link DataAccessObject#getMatches(double, int)
+	 * @param see
+	 *            {@link DataAccessObject}{@link #getMatches(double, int)}
+	 * @return the at most n {@link HighTarget}s that are closest to target in
+	 *         height, both taller and shorter targets will be returned. If n is
+	 *         odd then targets taller than target will benefit from the extra
+	 *         item e.g if n is 3 then 2 taller and 1 shorter will be returned
+	 *         (if found)
 	 */
 	@Override
 	public Stream<HighTarget> getMatches(double target, int n) {
 		final int shortLimit = n / 2;
 		final int tallLimit = (n % 2 == 1) ? shortLimit + 1 : shortLimit;
 		final Stream<HighTarget> shorter = STORE.stream()
-					.filter(t -> t.getHeight() < target)
-					.sorted((a,b) -> b.getHeight() - a.getHeight())
-					.limit(shortLimit);
-		
+				.filter(t -> t.getHeight() < target)
+				.sorted((a, b) -> b.getHeight() - a.getHeight())
+				.limit(shortLimit);
+
 		final Stream<HighTarget> taller = STORE.stream()
-					.filter(t -> t.getHeight() >= target)
-					.sorted((a,b) -> a.getHeight() - b.getHeight())
-					.limit(tallLimit);
-		
+				.filter(t -> t.getHeight() >= target)
+				.sorted((a, b) -> a.getHeight() - b.getHeight())
+				.limit(tallLimit);
+
 		return Stream.concat(shorter, taller);
 	}
 

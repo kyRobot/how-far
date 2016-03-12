@@ -15,7 +15,7 @@ public class Functions {
 		// prevent instantiation
 	}
 
-	public static BiFunction<Integer, Double, Double> toNplaces = (n, val) -> new BigDecimal(val)
+	public static BiFunction<Integer, Double, Double> toNplaces = (n, val) -> BigDecimal.valueOf(val)
 			.setScale(n, BigDecimal.ROUND_HALF_UP).doubleValue();
 
 	public static final BiFunction<Double, String, Double> converter = (rate, value) -> rate * parseDouble(value);

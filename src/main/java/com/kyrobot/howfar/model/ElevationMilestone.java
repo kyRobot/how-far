@@ -1,12 +1,17 @@
 package com.kyrobot.howfar.model;
 
-public final class ElevationMilestone {
-	public final HighTarget goal;
-	public final double completion;
+import java.util.Optional;
 
-	public ElevationMilestone(HighTarget somethingTall, double completion) {
-		this.goal = somethingTall;
-		this.completion = completion;
+public final class ElevationMilestone {
+	public final HighTarget target;
+	public final Integer attained;
+	public final Double progress;
+
+	public ElevationMilestone(HighTarget somethingTall, Optional<Integer> completed, Double progress) {
+		this.target = somethingTall;
+		this.attained = completed.orElse(null);
+		this.progress = progress;
+
 	}
 
 }

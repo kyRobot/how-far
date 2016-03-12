@@ -6,6 +6,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.when;
@@ -102,14 +103,14 @@ public class ElevationServiceTest {
 	public void testMetersMajors() throws Exception {
 		final ElevationResponse elevationResponse = callAPI("meters/100");
 
+		assertNull(elevationResponse.isHeightConverted());
+		assertEquals(100, elevationResponse.getTargetHeight(), 0);
+
 		final List<ElevationMilestone> majorMilestones = newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
+		checkMilestone(majorMilestones.get(0), 1, 0.0);
 
-		double completion = majorMilestones.get(0).completion;
-		assertNotNull(completion);
-		assertEquals(1.0, completion, 0);
-
-		final HighTarget target = majorMilestones.get(0).goal;
+		final HighTarget target = majorMilestones.get(0).target;
 		checkTarget(target, major_id, major_name, major_height);
 	}
 
@@ -117,17 +118,18 @@ public class ElevationServiceTest {
 	public void testFloorsMajors() throws Exception {
 		// A Floor is 3.048 meters -> 5 floors is 15.24m
 		// Target is 100 meters
-		// Expect completion -> 0.152 to 3 decimal places
+		// Expect attained: null, progress: 15.2
 
 		final ElevationResponse elevationResponse = callAPI("floors/5");
+
+		assertTrue(elevationResponse.isHeightConverted());
+		assertEquals(15.24, elevationResponse.getTargetHeight(), 0);
+
 		final List<ElevationMilestone> majorMilestones = Lists.newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
+		checkMilestone(majorMilestones.get(0), null, 15.2);
 
-		double completion = majorMilestones.get(0).completion;
-		assertNotNull(completion);
-		assertEquals(0.152, completion, 0);
-
-		final HighTarget target = majorMilestones.get(0).goal;
+		final HighTarget target = majorMilestones.get(0).target;
 		checkTarget(target, major_id, major_name, major_height);
 	}
 
@@ -135,25 +137,25 @@ public class ElevationServiceTest {
 	public void testFeetMajors() throws Exception {
 		// A Foot is 0.3048 -> 8 feet is 2.4384m
 		// Target is 100 meters
-		// Expect completion -> 0.024 to 3 decimal places
+		// Expect attained: null progress: 2.4
 		final ElevationResponse elevationResponse = callAPI("feet/8");
+
+		assertTrue(elevationResponse.isHeightConverted());
+		assertEquals(2.4384, elevationResponse.getTargetHeight(), 0);
 
 		final List<ElevationMilestone> majorMilestones = Lists.newArrayList(elevationResponse.getMajorMilestones());
 		assertTrue(majorMilestones.size() == 1);
+		checkMilestone(majorMilestones.get(0), null, 2.4);
 
-		double completion = majorMilestones.get(0).completion;
-		assertNotNull(completion);
-		assertEquals(0.024, completion, 0);
-
-		final HighTarget target = majorMilestones.get(0).goal;
+		final HighTarget target = majorMilestones.get(0).target;
 		checkTarget(target, major_id, major_name, major_height);
 	}
 
 	@Test
 	public void testMetersClosest() throws Exception {
-		final HighTarget one = new HighTarget(1, "One", 1);
-		final HighTarget two = new HighTarget(2, "Two", 2);
-		final HighTarget three = new HighTarget(3, "Three", 3);
+		final HighTarget one = new HighTarget(99, "One", 1);
+		final HighTarget two = new HighTarget(100, "Two", 2);
+		final HighTarget three = new HighTarget(101, "Three", 3);
 
 		when(mockDAO.getMatches(anyDouble(), anyInt())).thenReturn(Stream.of(three, two, one));
 
@@ -162,10 +164,25 @@ public class ElevationServiceTest {
 		final Collection<ElevationMilestone> closest = elevationResponse.getClosestAchievements();
 		assertTrue(closest.size() == 3);
 
-		final Set<HighTarget> closestTargets = closest.stream().map(em -> em.goal).collect(toSet());
-		final Set<Double> closestCompletions = closest.stream().map(em -> em.completion).collect(toSet());
+		final Set<HighTarget> closestTargets = closest.stream().map(em -> em.target).collect(toSet());
 		assertEquals(Sets.newHashSet(one, two, three), closestTargets);
-		assertEquals(Sets.newHashSet(1.0, 1.5, 3.0), closestCompletions);
+
+		for (ElevationMilestone milestone : closest) {
+			switch (Long.valueOf(milestone.target.getId()).intValue()) {
+			case 99:
+				checkMilestone(milestone, 3, 0.0);
+				break;
+			case 100:
+				checkMilestone(milestone, 1, 50.0);
+				break;
+			case 101:
+				checkMilestone(milestone, 1, 0.0);
+				break;
+			default:
+				fail("Unexpected target returned");
+			}
+		}
+
 	}
 
 	private static void checkTarget(HighTarget target, long expectedId, String expectedName, int expectedHeight) {
@@ -173,6 +190,12 @@ public class ElevationServiceTest {
 		assertEquals(expectedName, target.getName());
 		assertEquals(expectedHeight, target.getHeight());
 		assertEquals(expectedId, target.getId());
+	}
+
+	private static void checkMilestone(ElevationMilestone milestone, Integer attainment, Double progress) {
+		assertNotNull(milestone);
+		assertEquals(attainment, milestone.attained);
+		assertEquals(progress, milestone.progress, 0);
 	}
 
 }

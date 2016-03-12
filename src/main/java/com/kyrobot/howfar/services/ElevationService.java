@@ -3,6 +3,7 @@ package com.kyrobot.howfar.services;
 import static spark.Spark.get;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,7 +27,7 @@ public class ElevationService implements RESTService {
 	public static final double METERS_PER_FOOT = 0.3048;
 	public static final double NO_CONVERSION = 1.0;
 
-	private static final int PRECISION = 3; // decimal places, not sig figs
+	private static final int PRECISION = 1; // decimal places, not sig figs
 	private static final int MATCH_LIMIT = 2;
 
 	private final DataAccessObject<HighTarget> dao;
@@ -36,7 +37,7 @@ public class ElevationService implements RESTService {
 	}
 
 	@Override
-	public void defineRoutes() {
+	public final void defineRoutes() {
 
 		get(API_ROOT + "/floors/:floors",
 			HttpFragments.APPLICATION_JSON,
@@ -56,7 +57,7 @@ public class ElevationService implements RESTService {
 
 	private ElevationResponse elevationResponse(Request req, Response res, String paramKey, double conversionMultiplier,
 			int precision, int nToFind) {
-		final double metersClimbed = convert(req.params(paramKey), conversionMultiplier);
+		final Double metersClimbed = convert(req.params(paramKey), conversionMultiplier);
 		final ElevationResponse.Builder builder = ElevationResponse.builder();
 		builder.target(metersClimbed, conversionMultiplier != NO_CONVERSION);
 		builder.majorMilestones(milestones(dao.getMajor(), metersClimbed, precision));
@@ -72,13 +73,19 @@ public class ElevationService implements RESTService {
 		}
 	}
 
-	private static Double completed(final double done, final int target, final int precision) {
-		return Functions.toNplaces.apply(precision, done / target);
+	private static Optional<Integer> optionalCompletion(Integer completion) {
+		return completion > 0 ? Optional.of(completion) : Optional.empty();
 	}
 
-	private static List<ElevationMilestone> milestones(Stream<HighTarget> targets, double climbed,
+	private static List<ElevationMilestone> milestones(Stream<HighTarget> targets, Double climbed,
 			int completedPrecision) {
-		return targets.map(t -> new ElevationMilestone(t, completed(climbed, t.getHeight(), completedPrecision)))
+
+		return targets.map(t -> {
+			final Double completion = climbed / t.getHeight();
+			final Integer fullCompletions = Integer.valueOf(completion.intValue());
+			final Double progress = Functions.toNplaces.apply(completedPrecision, (completion % 1) * 100);
+			return new ElevationMilestone(t, optionalCompletion(fullCompletions), progress);
+		})
 				.collect(Collectors.toList());
 	}
 
